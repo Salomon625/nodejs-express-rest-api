@@ -2,28 +2,37 @@ import express from 'express';
 import cors from 'cors';
 import nspell from 'nspell';
 import dictionaryEs from 'dictionary-es';
+import dictionaryDe from 'dictionary-de';
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const loadDictionary = async () => {
-  const dictEs = await dictionaryEs;
-  return nspell(dictEs);
+let spellcheckerEs;
+let spellcheckerDe;
+
+const loadDictionaries = async () => {
+  const es = await dictionaryEs;
+  const de = await dictionaryDe;
+  spellcheckerEs = nspell(es);
+  spellcheckerDe = nspell(de);
+  console.log("Diccionarios cargados correctamente.");
 };
 
-let spellchecker;
-
-loadDictionary().then((dict) => {
-  spellchecker = dict;
-  console.log("Diccionario de español cargado correctamente.");
-}).catch((error) => {
-  console.error("Error al cargar el diccionario:", error);
+loadDictionaries().catch(err => {
+  console.error("Error al cargar los diccionarios:", err);
 });
 
 app.post('/corregir', (req, res) => {
-  const texto = req.body.texto;
-  console.log("Mensaje recibido:", texto);
+  const { texto, idioma } = req.body;
+  console.log("Mensaje recibido:", texto, "Idioma:", idioma);
+
+  let spellchecker;
+  if (idioma === 'de') {
+    spellchecker = spellcheckerDe;
+  } else {
+    spellchecker = spellcheckerEs;
+  }
 
   if (!spellchecker) {
     return res.status(500).json({ error: "El diccionario no está listo." });
@@ -40,8 +49,6 @@ app.post('/corregir', (req, res) => {
   });
 
   const textoCorregido = corregidas.join(' ');
-  console.log("Mensaje corregido:", textoCorregido);
-  
   res.json({ corregido: textoCorregido });
 });
 
