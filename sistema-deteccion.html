@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detección de Idioma</title>
+    <style>
+        /* Estilos generales del cuerpo */
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0; /* Fondo gris claro */
+        }
+
+        /* Estilo del título */
+        h1 {
+            color: #333;
+        }
+
+        /* Estilos para el área de texto donde se ingresará el texto */
+        textarea {
+            width: 80%;
+            height: 100px;
+            padding: 10px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            resize: none;
+            font-size: 16px;
+        }
+
+        /* Estilos del botón de "Detectar Idioma" */
+        button {
+            margin-top: 20px;
+            padding: 15px 30px;
+            font-size: 18px;
+            background-color: #4CAF50; /* Verde */
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        /* Cambia el color del botón cuando el cursor está sobre él */
+        button:hover {
+            background-color: #45a049;
+        }
+
+        /* Contenedor donde se mostrará el idioma detectado */
+        #resultado {
+            margin-top: 30px; /* Espacio entre el botón y el resultado */
+            width: 100%;
+            height: 150px; /* Espacio más grande para el resultado */
+            padding: 15px;
+            border: 2px solid #333; /* Borde oscuro */
+            border-radius: 5px;
+            background-color: white; /* Fondo blanco */
+            font-size: 18px;
+            display: flex;
+            align-items: center; /* Centrar el texto verticalmente */
+            justify-content: center; /* Centrar el texto horizontalmente */
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Detección de Idioma</h1>
+
+    <!-- Área de texto para que el usuario escriba -->
+    <textarea id="texto" placeholder="Escribe tu texto aquí..."></textarea>
+    <br>
+
+    <!-- Botón para enviar el texto al servidor y detectar el idioma -->
+    <button onclick="detectarIdioma()">Detectar Idioma</button>
+
+    <!-- Div donde se mostrará el resultado de la detección -->
+    <div id="resultado">Aquí aparecerá el idioma detectado...</div>
+
+    <script>
+        // Función para detectar el idioma
+        function detectarIdioma() {
+            // Obtener el valor del área de texto
+            const texto = document.getElementById('texto').value.trim();
+            const resultado = document.getElementById('resultado');
+
+            // Verificar si el usuario ingresó texto
+            if (!texto) {
+                resultado.textContent = "Por favor, ingresa un texto.";
+                return;
+            }
+
+            // Mostrar mensaje de carga mientras se obtiene la respuesta
+            resultado.textContent = "Detectando idioma...";
+
+            // Enviar el texto al servidor mediante una solicitud HTTP POST
+            fetch('http://localhost:3000/corregir', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ texto }) // Enviar el texto en formato JSON
+            })
+            .then(response => response.json()) // Convertir la respuesta a JSON
+            .then(data => {
+                // Mostrar el idioma detectado en la interfaz
+                resultado.textContent = `Idioma detectado: ${data.idioma}`;
+            })
+            .catch(error => {
+                // Manejar errores en la solicitud
+                console.error("Error:", error);
+                resultado.textContent = "Error al conectar con el servidor.";
+            });
+        }
+    </script>
+</body>
+
+</html>
