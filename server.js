@@ -1,35 +1,47 @@
 import express from 'express';
 import cors from 'cors';
+import fs from 'fs/promises';
+import path from 'path';
 import nspell from 'nspell';
-import dictionaryEs from 'dictionary-es';
-import dictionaryDe from 'dictionary-de';
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 let spellcheckerEs;
-let spellcheckerDe;
+let spellcheckerFr;
 
 const loadDictionaries = async () => {
-  const es = await dictionaryEs;
-  const de = await dictionaryDe;
-  spellcheckerEs = nspell(es);
-  spellcheckerDe = nspell(de);
-  console.log("Diccionarios cargados correctamente.");
+  try {
+    // Diccionario Español
+    const [affEs, dicEs] = await Promise.all([
+      fs.readFile(path.join('diccionaries', 'indice.aff')),
+      fs.readFile(path.join('diccionaries', 'index.dic')),
+    ]);
+    spellcheckerEs = nspell(affEs, dicEs);
+
+    // Diccionario Francés
+    const [affFr, dicFr] = await Promise.all([
+      fs.readFile(path.join('diccionaries', 'indic.aff')),
+      fs.readFile(path.join('diccionaries', 'indx.dic')),
+    ]);
+    spellcheckerFr = nspell(affFr, dicFr);
+
+    console.log('✅ Diccionarios cargados correctamente.');
+  } catch (err) {
+    console.error('❌ Error al cargar los diccionarios:', err);
+  }
 };
 
-loadDictionaries().catch(err => {
-  console.error("Error al cargar los diccionarios:", err);
-});
+loadDictionaries();
 
 app.post('/corregir', (req, res) => {
   const { texto, idioma } = req.body;
-  console.log("Mensaje recibido:", texto, "Idioma:", idioma);
+  console.log("📩 Mensaje recibido:", texto, "🌐 Idioma:", idioma);
 
   let spellchecker;
-  if (idioma === 'de') {
-    spellchecker = spellcheckerDe;
+  if (idioma === 'fr') {
+    spellchecker = spellcheckerFr;
   } else {
     spellchecker = spellcheckerEs;
   }
@@ -54,5 +66,5 @@ app.post('/corregir', (req, res) => {
 
 const port = 3000;
 app.listen(port, () => {
-  console.log(`Servidor corriendo en http://localhost:${port}`);
+  console.log(`🚀 Servidor corriendo en http://localhost:${port}`);
 });
