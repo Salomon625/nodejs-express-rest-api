@@ -9,23 +9,23 @@ app.use(cors());
 app.use(express.json());
 
 let spellcheckerEs;
-let spellcheckerFr;
+let spellcheckerDe;
 
 const loadDictionaries = async () => {
   try {
     // Diccionario Español
     const [affEs, dicEs] = await Promise.all([
       fs.readFile(path.join('diccionaries', 'indice.aff')),
-      fs.readFile(path.join('diccionaries', 'index.dic')),
+      fs.readFile(path.join('diccionaries', 'indice.dic')),
     ]);
     spellcheckerEs = nspell(affEs, dicEs);
 
-    // Diccionario Francés
-    const [affFr, dicFr] = await Promise.all([
-      fs.readFile(path.join('diccionaries', 'indic.aff')),
-      fs.readFile(path.join('diccionaries', 'indx.dic')),
+    // Diccionario Alemán
+    const [affDe, dicDe] = await Promise.all([
+      fs.readFile(path.join('diccionaries', 'aleman.aff')),
+      fs.readFile(path.join('diccionaries', 'aleman.dic')),
     ]);
-    spellcheckerFr = nspell(affFr, dicFr);
+    spellcheckerDe = nspell(affDe, dicDe);
 
     console.log('✅ Diccionarios cargados correctamente.');
   } catch (err) {
@@ -40,8 +40,8 @@ app.post('/corregir', (req, res) => {
   console.log("📩 Mensaje recibido:", texto, "🌐 Idioma:", idioma);
 
   let spellchecker;
-  if (idioma === 'fr') {
-    spellchecker = spellcheckerFr;
+  if (idioma === 'de') {
+    spellchecker = spellcheckerDe;
   } else {
     spellchecker = spellcheckerEs;
   }
