@@ -1,134 +1,222 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Corrector Ortográfico Gratuito</title>
+    <title>Corrector Ortográfico Inteligente</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* Estilo para prevenir selección de texto */
+        * {
+            -webkit-user-select: none; /* Chrome/Safari */
+            -moz-user-select: none; /* Firefox */
+            -ms-user-select: none; /* IE10+ */
+            user-select: none;
+        }
+
+        /* Permitir selección solo en áreas de texto */
+        #upperText, #lowerText {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
+
+        :root {
+            --primary: #4285f4;
+            --secondary: #34a853;
+            --danger: #ea4335;
+            --light: #f8f9fa;
+            --dark: #202124;
+        }
+
         body {
-            background-color: lightblue;
-            /* Fondo azul por defecto */
-            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             text-align: center;
             margin: 0;
-            overflow: hidden;
+            min-height: 100vh;
             position: relative;
-            transition: background-color 0.5s;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
         h1 {
-            color: navy;
+            color: #2c3e50;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+            margin: 20px 0;
+            transition: all 0.5s ease;
+            pointer-events: none;
+        }
+
+        #title {
+            font-size: 2.5rem;
+            margin-top: 30px;
+        }
+
+        #blueTitle {
+            color: #3498db;
+            font-size: 2rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+            position: absolute;
+            top: 30px;
+            pointer-events: none;
+            width: 100%;
+            text-align: center;
         }
 
         button {
-            background-color: #4CAF50;
+            background: linear-gradient(to right, #3498db, #2ecc71);
             color: white;
             border: none;
-            padding: 25px 50px;
-            font-size: 28px;
+            padding: 15px 30px;
+            font-size: 1.2rem;
             cursor: pointer;
-            display: block;
-            margin: 20px auto;
-            border-radius: 8px;
+            margin: 15px 0;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
         }
 
-        .hidden {
-            display: none;
+        button:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
         }
 
         #resetButton {
+            background: linear-gradient(to right, #e74c3c, #f39c12);
             position: fixed;
             bottom: 20px;
             right: 20px;
-            background-color: #f44336;
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            font-size: 18px;
-            cursor: pointer;
-            border-radius: 8px;
-            z-index: 2;
         }
 
         #correctButton {
+            background: linear-gradient(to right, #2ecc71, #3498db);
             position: fixed;
-            bottom: 20px;
+            bottom: -100px;
             left: 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            font-size: 18px;
-            cursor: pointer;
-            border-radius: 8px;
-            z-index: 2;
-            display: none;
+            transition: bottom 0.5s ease, opacity 0.3s ease;
+            opacity: 0;
         }
 
         #textBox {
-            width: 80%;
-            height: 70vh;
-            margin: 20px auto;
-            background-color: white;
-            border: 2px solid black;
-            border-radius: 10px;
-            padding: 10px;
-            resize: none;
-            overflow-y: auto;
+            width: 95%; /* Cambiado de 85% a 95% */
+            max-width: 900px; /* Aumentado de 800px */
+            height: 60vh;
+            margin: 100px 0 20px 0; /* Aumentado margen superior de 80px a 100px */
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 20px;
             box-sizing: border-box;
             display: none;
             flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transform: translateY(20px);
+            opacity: 0;
+            transition: all 0.5s ease;
         }
 
         #upperText {
             flex: 1;
             height: 50%;
-            color: gray;
-            font-style: italic;
+            color: #2c3e50;
+            font-size: 1.1rem;
             resize: none;
             border: none;
             outline: none;
-            padding: 10px;
+            padding: 15px;
             box-sizing: border-box;
             width: 100%;
+            background: transparent;
+            border-bottom: 2px solid #eee;
+            transition: all 0.3s ease;
         }
 
         #lowerText {
             height: 50%;
-            background-color: #e0e0e0;
-            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 15px;
             box-sizing: border-box;
             overflow-y: auto;
             text-align: left;
+            border-radius: 0 0 15px 15px;
+            font-size: 1.1rem;
+            color: #2c3e50;
+            line-height: 1.6;
         }
 
         .line {
             position: absolute;
             height: 2px;
-            background: transparent;
+            background: linear-gradient(to right, #3498db, #9b59b6);
             pointer-events: none;
             transform-origin: left center;
-            z-index: 1;
+            z-index: 0;
+            transition: all 0.3s ease;
+        }
+
+        .loader {
+            display: none;
+            margin: 10px auto;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            #textBox {
+                width: 98%; /* Más ancho en móviles */
+                height: 65vh;
+                margin-top: 90px; /* Ajustado para coincidir con el cambio */
+            }
+            
+            button {
+                padding: 12px 25px;
+                font-size: 1rem;
+            }
+            
+            #resetButton, #correctButton {
+                padding: 10px 20px;
+            }
+            
+            #blueTitle {
+                font-size: 1.5rem;
+            }
         }
     </style>
 </head>
-
 <body>
-    <h1 id="title">¡Bienvenido al corrector!</h1>
-    <button id="mainButton">Comencemos</button>
-    <h1 id="blueTitle" class="hidden">Corrector Ortográfico Gratuito</h1>
-    <button id="resetButton">Resetear</button>
-    <button id="correctButton">Corregir</button>
+    <h1 id="title">¡Bienvenido al corrector premium!</h1>
+    <button id="mainButton"><i class="fas fa-magic"></i> Comencemos</button>
+    <h1 id="blueTitle">Corrector Ortográfico Inteligente</h1>
+    <button id="resetButton"><i class="fas fa-redo"></i> Resetear</button>
+    <button id="correctButton"><i class="fas fa-check-circle"></i> Corregir</button>
 
     <div id="textBox">
-        <textarea id="upperText" placeholder="Introduce tu palabra o texto"></textarea>
+        <textarea id="upperText" placeholder="Escribe tu texto aquí..."></textarea>
         <div id="lowerText"></div>
+        <div id="loader" class="loader"></div>
     </div>
 
-
-
     <script>
+        // Elementos del DOM
         const mainButton = document.getElementById('mainButton');
         const resetButton = document.getElementById('resetButton');
         const correctButton = document.getElementById('correctButton');
@@ -137,117 +225,159 @@
         const textBox = document.getElementById('textBox');
         const upperText = document.getElementById('upperText');
         const lowerText = document.getElementById('lowerText');
-        const buttonContainer = document.getElementById('buttonContainer');
+        const loader = document.getElementById('loader');
         let startX, startY, line;
 
-
-
-
-
+        // Configuración inicial de la página
         function setupPage() {
-            document.body.style.backgroundColor = 'lightblue';
-            title.classList.add('hidden');
-            mainButton.classList.add('hidden');
-            blueTitle.classList.remove('hidden');
-            textBox.style.display = 'flex';
-            correctButton.style.display = 'block';
-            // Elimina o comenta esta línea
-
+            // Animación de salida del título de bienvenida
+            title.style.opacity = '0';
+            title.style.transform = 'translateY(-20px)';
+            
+            // Animación de salida del botón Comencemos
+            mainButton.style.opacity = '0';
+            mainButton.style.transform = 'scale(0.8)';
+            
+            // Después de que terminen las animaciones de salida
+            setTimeout(() => {
+                title.style.display = 'none';
+                mainButton.style.display = 'none';
+                
+                // Mostrar nuevo título
+                blueTitle.style.opacity = '1';
+                blueTitle.style.transform = 'translateY(0)';
+                
+                // Asegurar espacio para el título antes de mostrar el cuadro
+                setTimeout(() => {
+                    // Mostrar área de texto
+                    textBox.style.display = 'flex';
+                    setTimeout(() => {
+                        textBox.style.opacity = '1';
+                        textBox.style.transform = 'translateY(0)';
+                    }, 100);
+                    
+                    // Mostrar botón Corregir (sube desde abajo)
+                    correctButton.style.bottom = '20px';
+                    correctButton.style.opacity = '1';
+                    
+                    // Enfocar el área de texto
+                    setTimeout(() => upperText.focus(), 500);
+                }, 300);
+            }, 500);
         }
 
+        // Evento para iniciar
         mainButton.addEventListener('click', setupPage);
 
-        correctButton.addEventListener('click', () => {
-    const text = upperText.value.trim();
-    if (text) {
-        lowerText.innerHTML = "Procesando, por favor espera...";
-
-        fetch('http://localhost:3000/corregir', { 
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ texto: text }) // Envía el texto al servidor
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.corregido) {
-                lowerText.innerHTML = `Texto corregido: ${data.corregido}`;
-            } else {
-                lowerText.innerHTML = "No se pudo corregir el texto.";
+        // Función principal de corrección
+        correctButton.addEventListener('click', async () => {
+            const text = upperText.value.trim();
+            if (!text) {
+                lowerText.innerHTML = "Por favor, introduce un texto";
+                lowerText.style.color = "#e74c3c";
+                return;
             }
-        })
-        .catch(error => {
-            console.error("Error al conectarse con el servidor", error);
-            lowerText.innerHTML = "Hubo un error. Intenta más tarde.";
-        });
-    } else {
-        lowerText.innerHTML = "Por favor, introduce un texto.";
-    }
-});
 
+            loader.style.display = 'block';
+            lowerText.innerHTML = "";
+            
+            try {
+                const response = await fetch('https://nodejs-express-rest-api-j5lr.onrender.com/corregir', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ texto: text })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                if (data.corregido) {
+                    lowerText.innerHTML = `<strong>Texto original:</strong> ${data.original}<br><br>
+                                         <strong>Texto corregido:</strong> ${data.corregido}`;
+                    lowerText.style.color = "#2c3e50";
+                } else {
+                    lowerText.innerHTML = "No se encontraron correcciones necesarias";
+                    lowerText.style.color = "#3498db";
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                lowerText.innerHTML = "Error al conectar con el servidor. Intenta nuevamente.";
+                lowerText.style.color = "#e74c3c";
+            } finally {
+                loader.style.display = 'none';
+            }
+        });
+
+        // Limpiar sugerencias al editar
         upperText.addEventListener('input', () => {
-            lowerText.textContent = ''; // Limpiar las sugerencias cuando se edita el texto
+            if (lowerText.textContent !== "") {
+                lowerText.textContent = "";
+                lowerText.style.color = "#2c3e50";
+            }
         });
 
-        document.addEventListener('mousedown', function (event) {
-            if (event.target.tagName !== 'BUTTON') {
-                startX = event.clientX;
-                startY = event.clientY;
-
+        // Funcionalidad de dibujo
+        document.addEventListener('mousedown', (e) => {
+            if (e.target.tagName !== 'BUTTON' && e.target.id !== 'upperText' && e.target.id !== 'lowerText') {
+                startX = e.clientX;
+                startY = e.clientY;
                 line = document.createElement('div');
                 line.className = 'line';
-                line.style.backgroundColor = '#' + Math.floor(Math.random() * 16777215).toString(16);
+                line.style.backgroundColor = `hsl(${Math.random() * 360}, 80%, 60%)`;
                 document.body.appendChild(line);
             }
         });
 
-        document.addEventListener('mousemove', function (event) {
+        document.addEventListener('mousemove', (e) => {
             if (line) {
-                let x = event.clientX;
-                let y = event.clientY;
-                let dx = x - startX;
-                let dy = y - startY;
-                let length = Math.sqrt(dx * dx + dy * dy);
-                let angle = Math.atan2(dy, dx) * (180 / Math.PI);
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                const length = Math.sqrt(dx * dx + dy * dy);
+                const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+                
                 line.style.width = `${length}px`;
                 line.style.top = `${startY}px`;
                 line.style.left = `${startX}px`;
                 line.style.transform = `rotate(${angle}deg)`;
+                line.style.opacity = '0.7';
             }
         });
 
-        document.addEventListener('mouseup', function (event) {
+        document.addEventListener('mouseup', () => {
             if (line) {
+                setTimeout(() => {
+                    if (line && line.parentNode) {
+                        line.parentNode.removeChild(line);
+                    }
+                }, 1000);
                 line = null;
             }
         });
 
+        // Resetear todo
         resetButton.addEventListener('click', () => {
-    const lines = document.querySelectorAll('.line');
-    console.log(`Se encontraron ${lines.length} líneas para eliminar.`); // Verificar cuántas líneas existen
+            document.querySelectorAll('.line').forEach(el => {
+                if (el.parentNode) {
+                    el.parentNode.removeChild(el);
+                }
+            });
+            
+            upperText.value = '';
+            lowerText.textContent = '';
+            upperText.focus();
+        });
 
-    lines.forEach(line => {
-        console.log("Eliminando línea:", line); // Muestra información sobre la línea
-        line.remove(); // Elimina la línea
-    });
-
-    upperText.value = ''; // Limpia el área de texto superior
-    lowerText.textContent = ''; // Limpia las sugerencias
-    console.log("Se eliminaron las líneas y se reseteó el contenido."); // Verificación en la consola
-});
-
+        // Prevenir selección en elementos no deseados
+        document.addEventListener('selectstart', function(e) {
+            if (e.target.id !== 'upperText' && e.target.id !== 'lowerText') {
+                e.preventDefault();
+            }
+        });
     </script>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js" 
-    crossorigin="anonymous"></script>
-    <ins class="adsbygoogle"
-         style="display:block; width:300px; height:250px; position: fixed; right: 10px; top: 50%; transform: translateY(-50%);"
-         data-ad-client="TU_CODIGO_CLIENTE"
-         data-ad-slot="TU_CODIGO_SLOT"></ins>
-    <script>
-        (adsbygoogle = window.adsbygoogle || []).push({});
-    </script>
-    
 </body>
-
 </html>
