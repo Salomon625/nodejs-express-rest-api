@@ -14,8 +14,8 @@
             user-select: none;
         }
 
-        /* Permitir selección solo en áreas de texto */
-        #upperText, #lowerText {
+        /* Permitir selección solo en el texto de resultado */
+        #lowerText, #lowerText * {
             -webkit-user-select: text;
             -moz-user-select: text;
             -ms-user-select: text;
@@ -43,6 +43,7 @@
             align-items: center;
             padding: 20px;
             box-sizing: border-box;
+            touch-action: manipulation;
         }
 
         h1 {
@@ -109,10 +110,10 @@
         }
 
         #textBox {
-            width: 95%; /* Cambiado de 85% a 95% */
-            max-width: 900px; /* Aumentado de 800px */
+            width: 95%;
+            max-width: 900px;
             height: 60vh;
-            margin: 100px 0 20px 0; /* Aumentado margen superior de 80px a 100px */
+            margin: 100px 0 20px 0;
             background-color: rgba(255, 255, 255, 0.9);
             border-radius: 15px;
             padding: 20px;
@@ -161,18 +162,38 @@
             pointer-events: none;
             transform-origin: left center;
             z-index: 0;
-            transition: all 0.3s ease;
+            transition: none; /* Eliminamos la transición para mayor fluidez */
+        }
+
+        .loader-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 10px;
         }
 
         .loader {
-            display: none;
-            margin: 10px auto;
             border: 4px solid #f3f3f3;
             border-top: 4px solid #3498db;
             border-radius: 50%;
             width: 30px;
             height: 30px;
             animation: spin 1s linear infinite;
+            margin-bottom: 10px;
+        }
+
+        .loader-text {
+            color: #3498db;
+            font-size: 0.9rem;
+            text-align: center;
+            margin-top: 5px;
+        }
+
+        .error-note {
+            color: #e74c3c;
+            font-size: 0.8rem;
+            margin-top: 5px;
+            font-style: italic;
         }
 
         @keyframes spin {
@@ -182,9 +203,9 @@
 
         @media (max-width: 768px) {
             #textBox {
-                width: 98%; /* Más ancho en móviles */
+                width: 98%;
                 height: 65vh;
-                margin-top: 90px; /* Ajustado para coincidir con el cambio */
+                margin-top: 90px;
             }
             
             button {
@@ -212,7 +233,11 @@
     <div id="textBox">
         <textarea id="upperText" placeholder="Escribe tu texto aquí..."></textarea>
         <div id="lowerText"></div>
-        <div id="loader" class="loader"></div>
+        <div id="loaderContainer" class="loader-container">
+            <div class="loader"></div>
+            <div class="loader-text">Cargando...</div>
+            <div class="error-note">Si el servicio no responde, reinicie la página</div>
+        </div>
     </div>
 
     <script>
@@ -225,42 +250,35 @@
         const textBox = document.getElementById('textBox');
         const upperText = document.getElementById('upperText');
         const lowerText = document.getElementById('lowerText');
-        const loader = document.getElementById('loader');
+        const loaderContainer = document.getElementById('loaderContainer');
         let startX, startY, line;
+        let isDrawing = false;
+        let lastAngle = 0;
 
         // Configuración inicial de la página
         function setupPage() {
-            // Animación de salida del título de bienvenida
             title.style.opacity = '0';
             title.style.transform = 'translateY(-20px)';
-            
-            // Animación de salida del botón Comencemos
             mainButton.style.opacity = '0';
             mainButton.style.transform = 'scale(0.8)';
             
-            // Después de que terminen las animaciones de salida
             setTimeout(() => {
                 title.style.display = 'none';
                 mainButton.style.display = 'none';
                 
-                // Mostrar nuevo título
                 blueTitle.style.opacity = '1';
                 blueTitle.style.transform = 'translateY(0)';
                 
-                // Asegurar espacio para el título antes de mostrar el cuadro
                 setTimeout(() => {
-                    // Mostrar área de texto
                     textBox.style.display = 'flex';
                     setTimeout(() => {
                         textBox.style.opacity = '1';
                         textBox.style.transform = 'translateY(0)';
                     }, 100);
                     
-                    // Mostrar botón Corregir (sube desde abajo)
                     correctButton.style.bottom = '20px';
                     correctButton.style.opacity = '1';
                     
-                    // Enfocar el área de texto
                     setTimeout(() => upperText.focus(), 500);
                 }, 300);
             }, 500);
@@ -278,7 +296,7 @@
                 return;
             }
 
-            loader.style.display = 'block';
+            loaderContainer.style.display = 'flex';
             lowerText.innerHTML = "";
             
             try {
@@ -306,10 +324,10 @@
                 }
             } catch (error) {
                 console.error("Error:", error);
-                lowerText.innerHTML = "Error al conectar con el servidor. Intenta nuevamente.";
+                lowerText.innerHTML = "Error al conectar con el servidor. Por favor, intente nuevamente o reinicie la página.";
                 lowerText.style.color = "#e74c3c";
             } finally {
-                loader.style.display = 'none';
+                loaderContainer.style.display = 'none';
             }
         });
 
@@ -321,24 +339,36 @@
             }
         });
 
-        // Funcionalidad de dibujo
+        // Funcionalidad de dibujo mejorada
         document.addEventListener('mousedown', (e) => {
             if (e.target.tagName !== 'BUTTON' && e.target.id !== 'upperText' && e.target.id !== 'lowerText') {
+                isDrawing = true;
                 startX = e.clientX;
                 startY = e.clientY;
                 line = document.createElement('div');
                 line.className = 'line';
                 line.style.backgroundColor = `hsl(${Math.random() * 360}, 80%, 60%)`;
                 document.body.appendChild(line);
+                e.preventDefault(); // Previene selección accidental
             }
         });
 
         document.addEventListener('mousemove', (e) => {
-            if (line) {
+            if (isDrawing && line) {
                 const dx = e.clientX - startX;
                 const dy = e.clientY - startY;
                 const length = Math.sqrt(dx * dx + dy * dy);
-                const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+                let angle = Math.atan2(dy, dx) * (180 / Math.PI);
+                
+                // Suavizar la transición de ángulos para evitar saltos de 360°
+                if (Math.abs(angle - lastAngle) > 180) {
+                    if (angle > lastAngle) {
+                        angle -= 360;
+                    } else {
+                        angle += 360;
+                    }
+                }
+                lastAngle = angle;
                 
                 line.style.width = `${length}px`;
                 line.style.top = `${startY}px`;
@@ -349,6 +379,7 @@
         });
 
         document.addEventListener('mouseup', () => {
+            isDrawing = false;
             if (line) {
                 setTimeout(() => {
                     if (line && line.parentNode) {
@@ -374,7 +405,7 @@
 
         // Prevenir selección en elementos no deseados
         document.addEventListener('selectstart', function(e) {
-            if (e.target.id !== 'upperText' && e.target.id !== 'lowerText') {
+            if (e.target.id !== 'lowerText' && !e.target.closest('#lowerText')) {
                 e.preventDefault();
             }
         });
